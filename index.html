@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>סטודיו התכשיט האישי</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&family=Bellefair&display=swap">
+<style>
+:root{
+  --ivory:#f7f3ec;--paper:#fffdf9;--ink:#22201c;--muted:#8a8378;--line:#e6dfd3;
+  --gold:#b08d57;--gold-ink:#7d5f2f;--gold-soft:#efe4cf;--shadow:0 20px 50px -30px rgba(60,45,20,.35);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+html{direction:rtl}
+body{margin:0;padding-left:max(0px, env(safe-area-inset-left, 0px));padding-right:max(0px, env(safe-area-inset-right, 0px))}
+body{font-family:"Assistant","Arial Hebrew",Arial,sans-serif;background:var(--ivory);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+.app{display:grid;grid-template-columns:1fr 400px;height:100%}
+/* stage */
+.stage{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 50% 35%,#fffdf8 0%,#f3ede2 60%,#e9e1d3 100%)}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;top:22px;right:max(28px, env(safe-area-inset-right, 0px));left:max(28px, env(safe-area-inset-left, 0px));display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.brand h1{margin:0;font-family:"Bellefair","Assistant",serif;font-weight:400;font-size:34px;letter-spacing:.01em;text-wrap:balance}
+.brand h1 b{font-weight:400;color:var(--gold-ink)}
+.brand .sub{margin-top:4px;color:var(--muted);font-size:15px;font-weight:300}
+.demo-tag{pointer-events:auto;font-size:12px;letter-spacing:.08em;color:var(--gold-ink);border:1px solid var(--gold);border-radius:999px;padding:5px 12px;background:rgba(255,253,249,.7)}
+.hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);background:rgba(255,253,249,.85);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:14px;color:var(--muted);white-space:nowrap;pointer-events:none}
+/* panel */
+.panel{background:var(--paper);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.panel .scroll{overflow:auto;padding:26px max(26px, env(safe-area-inset-left, 0px)) 10px 26px;flex:1}
+.step{margin-bottom:26px}
+.step h2{margin:0 0 12px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px}
+.step h2 .n{width:24px;height:24px;border-radius:50%;background:var(--gold-soft);color:var(--gold-ink);display:grid;place-items:center;font-size:13px}
+.seg{display:grid;gap:8px}
+.seg.c3{grid-template-columns:repeat(3,1fr)}
+.opt{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 8px;font-size:14px;font-weight:400;transition:border-color .15s,background .15s;min-height:44px}
+.opt:hover{border-color:var(--gold)}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.opt .ic{display:block;font-size:20px;line-height:1.1;margin-bottom:3px}
+.metals{display:flex;gap:12px}
+.metal{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:0;font-size:13px;color:var(--muted)}
+.metal i{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.metal[aria-pressed="true"]{color:var(--ink)}
+.metal[aria-pressed="true"] i{box-shadow:0 0 0 2px var(--ink)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.sw{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);padding:0}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.label{font-size:13px;color:var(--muted);margin:14px 0 8px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-size:15px;font-weight:600;min-height:46px}
+.btn.primary{background:var(--ink);color:#fff;width:100%}
+.btn.ghost{background:#fff;border:1px solid var(--line);font-weight:400}
+.btn.add{background:var(--gold-soft);color:var(--gold-ink);width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--gold-ink);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.selbox{border:1px dashed var(--gold);border-radius:14px;padding:12px 14px;background:#fffaf1;margin-top:12px;display:none}
+.selbox.on{display:block}
+.selbox .t{font-size:13px;color:var(--gold-ink);margin-bottom:8px}
+.upload{border:1px dashed var(--line);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;background:#fff}
+.upload img{width:56px;height:56px;object-fit:cover;border-radius:10px;display:none}
+.upload label{flex:1;font-size:14px;cursor:pointer}
+.upload small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.upload input{display:none}
+.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.foot{border-top:1px solid var(--line);padding:16px 26px 20px;background:var(--paper)}
+.price{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.price .k{color:var(--muted);font-size:14px}
+.price .v{font-size:28px;font-weight:600}
+.price .v small{font-size:14px;font-weight:300;color:var(--muted);margin-right:4px}
+.foot .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(34,32,28,.45);display:none;place-items:center;padding:16px;z-index:10}
+.modal.on{display:grid}
+.card{background:var(--paper);border-radius:20px;max-width:440px;width:100%;padding:24px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 6px;font-size:22px;font-weight:600}
+.card img{width:100%;border-radius:14px;background:#f3ede2;margin:12px 0}
+.card ul{margin:0 0 16px;padding:0 18px 0 0;font-size:15px;line-height:1.8}
+.card .note{margin-bottom:14px}
+.toast{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:8px 16px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;grid-template-rows:56svh auto;height:auto;min-height:100%}
+  .panel{border-right:0;border-top:1px solid var(--line)}
+  .panel .scroll{overflow:visible;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  .foot{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  .foot{position:sticky;bottom:0}
+  .brand{top:14px;right:max(16px, env(safe-area-inset-right, 0px));left:max(16px, env(safe-area-inset-left, 0px))}
+  .brand h1{font-size:22px}
+  .hint{bottom:12px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+}}
+</script>
+<div class="app" dir="rtl" lang="he">
+  <main class="stage" id="stage">
+    <div class="brand">
+      <div>
+        <h1>עצבי את <b>התכשיט שלך</b></h1>
+        <div class="sub">כסף בציפוי זהב · אבני מוסיאניט</div>
+      </div>
+      <span class="demo-tag">דמו להמחשה</span>
+    </div>
+    <div class="toast" id="toast"></div>
+    <div class="hint" id="hint">גררי כדי לסובב · גררי אבן כדי להזיז אותה · גלגלת / צביטה לזום</div>
+  </main>
+
+  <aside class="panel" aria-label="אפשרויות עיצוב">
+    <div class="scroll">
+      <section class="step">
+        <h2><span class="n">1</span>בחרי בסיס</h2>
+        <div class="seg c3" id="bases">
+          <button class="opt" data-base="necklace" aria-pressed="true"><span class="ic">◡</span>שרשרת</button>
+          <button class="opt" data-base="bracelet"><span class="ic">◯</span>צמיד</button>
+          <button class="opt" data-base="ring"><span class="ic">○</span>טבעת</button>
+        </div>
+        <div id="pendantRow">
+          <div class="label">צורת התליון</div>
+          <div class="seg c3" id="pendants">
+            <button class="opt" data-pendant="circle" aria-pressed="true">עיגול</button>
+            <button class="opt" data-pendant="heart">לב</button>
+            <button class="opt" data-pendant="bar">מוט</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">2</span>גוון הציפוי</h2>
+        <div class="metals" id="metals">
+          <button class="metal" data-metal="yellow" aria-pressed="true"><i style="background:linear-gradient(135deg,#f6e3a8,#c99a3c)"></i>זהב צהוב</button>
+          <button class="metal" data-metal="rose"><i style="background:linear-gradient(135deg,#f7d2c4,#c98572)"></i>זהב ורוד</button>
+          <button class="metal" data-metal="white"><i style="background:linear-gradient(135deg,#ffffff,#b9bcc2)"></i>כסף</button>
+        </div>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">3</span>אבנים</h2>
+        <div class="label" style="margin-top:0">צורה</div>
+        <div class="seg c3" id="cuts">
+          <button class="opt" data-cut="round" aria-pressed="true">עגולה</button>
+          <button class="opt" data-cut="princess">מרובעת</button>
+          <button class="opt" data-cut="pear">טיפה</button>
+        </div>
+        <div class="label">גודל</div>
+        <div class="seg c3" id="sizes">
+          <button class="opt" data-size="s">קטנה</button>
+          <button class="opt" data-size="m" aria-pressed="true">בינונית</button>
+          <button class="opt" data-size="l">גדולה</button>
+        </div>
+        <div class="label">צבע</div>
+        <div class="swatches" id="colors"></div>
+        <div style="margin-top:14px"><button class="btn add" id="addStone">+ הוספת אבן</button></div>
+        <div class="selbox" id="selbox">
+          <div class="t">אבן נבחרה · שינוי צורה / גודל / צבע יחול עליה</div>
+          <div class="row">
+            <button class="btn ghost" id="dupStone">שכפול</button>
+            <button class="btn ghost" id="delStone">מחיקה</button>
+            <button class="btn ghost" id="doneStone">סיום</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">4</span>יש לך תכשיט שאת אוהבת?</h2>
+        <div class="upload">
+          <img id="inspoImg" alt="תמונת השראה">
+          <label for="inspo">העלאת תמונת השראה
+            <small>נצרף אותה לבקשה שלך</small></label>
+          <input type="file" id="inspo" accept="image/*">
+          <button class="btn ghost" onclick="document.getElementById('inspo').click()">בחירה</button>
+        </div>
+        <div class="note">בגרסה המתקדמת: ה-AI מזהה את התכשיט שבתמונה ומציע לך דגמים דומים מהקולקציה.</div>
+      </section>
+    </div>
+
+    <div class="foot">
+      <div class="price"><span class="k">המחיר שלך</span><span class="v" id="price">₪0</span></div>
+      <div class="row">
+        <button class="btn primary" id="toCart">הוספה לסל</button>
+        <button class="btn ghost" id="toStudio">שליחה לסטודיו</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal" dir="rtl" lang="he" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="card">
+    <h3 id="mTitle"></h3>
+    <img id="mShot" alt="התכשיט שעוצב">
+    <ul id="mList"></ul>
+    <div class="note">זהו דמו להמחשה: המחירים והאפשרויות לדוגמה בלבד.</div>
+    <button class="btn primary" id="mClose">חזרה לעיצוב</button>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// ---------- data (sample prices) ----------
+const BASES = { necklace: { name: 'שרשרת', price: 390 }, bracelet: { name: 'צמיד', price: 450 }, ring: { name: 'טבעת', price: 320 } };
+const PENDANTS = { circle: 'עיגול', heart: 'לב', bar: 'מוט' };
+const METALS = {
+  yellow: { name: 'זהב צהוב', color: 0xe2b85e, price: 60 },
+  rose: { name: 'זהב ורוד', color: 0xe3a48d, price: 60 },
+  white: { name: 'כסף', color: 0xdfe1e6, price: 0 },
+};
+const CUTS = { round: 'עגולה', princess: 'מרובעת', pear: 'טיפה' };
+const SIZES = { s: { name: 'קטנה', r: 0.045, price: 35 }, m: { name: 'בינונית', r: 0.065, price: 55 }, l: { name: 'גדולה', r: 0.09, price: 85 } };
+const COLORS = {
+  white: { name: 'לבן', hex: '#ffffff', tint: 0xffffff },
+  pink: { name: 'ורוד', hex: '#f4a7c3', tint: 0xff8fb8 },
+  blue: { name: 'תכלת', hex: '#9ccff7', tint: 0x7cc4ff },
+  green: { name: 'ירוק', hex: '#5cc79b', tint: 0x2fbf83 },
+  champagne: { name: 'שמפניה', hex: '#efd29b', tint: 0xf3c470 },
+  violet: { name: 'סגול', hex: '#b9a0f2', tint: 0x9c78f0 },
+};
+const MAX_STONES = 14;
+
+const state = { base: 'necklace', pendant: 'circle', metal: 'yellow', cut: 'round', size: 'm', color: 'white', inspo: null };
+
+// ---------- renderer / scene ----------
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
+const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(2, 3, 4); scene.add(key);
+const rim = new THREE.DirectionalLight(0xfff1dc, 0.8); rim.position.set(-3, 1, -2); scene.add(rim);
+
+const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 100);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.minDistance = 1.2; controls.maxDistance = 7; controls.enablePan = false;
+
+// soft contact shadow under the piece
+const shadowTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(70,50,20,.28)'); gr.addColorStop(1, 'rgba(70,50,20,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
+})();
+const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
+shadow.rotation.x = -Math.PI / 2; scene.add(shadow);
+
+// ---------- materials ----------
+const metalMat = new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 0.18, clearcoat: 0.6, clearcoatRoughness: 0.1, envMapIntensity: 1.3 });
+const bezelSelMat = new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 0.2, color: 0x222222, emissive: 0xc79a4a, emissiveIntensity: 0.9 });
+function applyMetal() { metalMat.color.setHex(METALS[state.metal].color); }
+function gemMaterial(colorKey) {
+  const t = COLORS[colorKey].tint;
+  return new THREE.MeshPhysicalMaterial({
+    color: t, metalness: 0, roughness: 0, transmission: 0.82, thickness: 0.35, ior: 2.4, dispersion: 6, clearcoat: 1, clearcoatRoughness: 0,
+    attenuationColor: new THREE.Color(t), attenuationDistance: colorKey === 'white' ? Infinity : 0.35,
+    specularIntensity: 1, specularColor: new THREE.Color(0xffffff), envMapIntensity: 3.4, flatShading: true, iridescence: 0.25, iridescenceIOR: 1.6,
+  });
+}
+
+// ---------- gem geometry (radius 1, girdle at y=0, crown up +Y) ----------
+const gemGeo = {
+  round: new THREE.LatheGeometry([[0, -0.86], [1, 0], [1, 0.04], [0.56, 0.36], [0, 0.37]].map(p => new THREE.Vector2(...p)), 16),
+  princess: new THREE.LatheGeometry([[0, -0.8], [1, 0], [1, 0.04], [0.62, 0.3], [0, 0.31]].map(p => new THREE.Vector2(...p)), 4, Math.PI / 4),
+  pear: (() => {
+    const g = new THREE.LatheGeometry([[0, -0.86], [1, 0], [1, 0.04], [0.56, 0.36], [0, 0.37]].map(p => new THREE.Vector2(...p)), 16);
+    const pos = g.attributes.position; // stretch one side into a point
+    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i); if (x > 0) pos.setX(i, x * (1 + 0.65 * (x))); }
+    g.computeVertexNormals(); return g;
+  })(),
+};
+const bezelGeo = {
+  round: new THREE.TorusGeometry(1.03, 0.11, 8, 32).rotateX(Math.PI / 2),
+  princess: new THREE.TorusGeometry(1.05, 0.11, 8, 4).rotateX(Math.PI / 2).rotateY(Math.PI / 4),
+  pear: (() => { const g = new THREE.TorusGeometry(1.03, 0.11, 8, 32).rotateX(Math.PI / 2); const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i); if (x > 0) p.setX(i, x * (1 + 0.65 * (x / 1.1))); } g.computeVertexNormals(); return g; })(),
+};
+
+// ---------- base pieces ----------
+let piece = null, targets = [];
+const stones = [];
+let selected = null;
+
+function shapeFor(kind) {
+  const s = new THREE.Shape();
+  if (kind === 'circle') s.absarc(0, 0, 0.42, 0, Math.PI * 2, false);
+  else if (kind === 'bar') { const w = 0.55, h = 0.13, r = 0.12; s.moveTo(-w + r, -h); s.lineTo(w - r, -h); s.quadraticCurveTo(w, -h, w, -h + r); s.lineTo(w, h - r); s.quadraticCurveTo(w, h, w - r, h); s.lineTo(-w + r, h); s.quadraticCurveTo(-w, h, -w, h - r); s.lineTo(-w, -h + r); s.quadraticCurveTo(-w, -h, -w + r, -h); }
+  else { s.moveTo(0, -0.45); s.bezierCurveTo(-0.15, -0.3, -0.5, -0.1, -0.5, 0.15); s.bezierCurveTo(-0.5, 0.38, -0.32, 0.48, -0.2, 0.48); s.bezierCurveTo(-0.08, 0.48, 0, 0.4, 0, 0.3); s.bezierCurveTo(0, 0.4, 0.08, 0.48, 0.2, 0.48); s.bezierCurveTo(0.32, 0.48, 0.5, 0.38, 0.5, 0.15); s.bezierCurveTo(0.5, -0.1, 0.15, -0.3, 0, -0.45); }
+  return s;
+}
+
+function buildNecklace() {
+  const g = new THREE.Group();
+  const geo = new THREE.ExtrudeGeometry(shapeFor(state.pendant), { depth: 0.07, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.025, bevelSegments: 5, curveSegments: 64 });
+  geo.center(); geo.computeBoundingBox();
+  const pend = new THREE.Mesh(geo, metalMat);
+  const top = geo.boundingBox.max.y;
+  pend.position.y = -top - 0.06; g.add(pend);
+  const bail = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.014, 12, 32), metalMat);
+  bail.rotation.y = Math.PI / 2; bail.position.y = -0.02; g.add(bail);
+  // chain of links along a curve
+  const curve = new THREE.CatmullRomCurve3([[-1.5, 2.4, -0.5], [-1.25, 1.35, -0.15], [-0.62, 0.42, 0], [0, 0.03, 0], [0.62, 0.42, 0], [1.25, 1.35, -0.15], [1.5, 2.4, -0.5]].map(p => new THREE.Vector3(...p)));
+  const linkGeo = new THREE.TorusGeometry(0.026, 0.0075, 8, 20).scale(1, 1.55, 1).rotateX(Math.PI / 2);
+  const len = curve.getLength(), step = 0.062, n = Math.floor(len / step);
+  const links = new THREE.InstancedMesh(linkGeo, metalMat, n);
+  const d = new THREE.Object3D();
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1), p = curve.getPointAt(t), tan = curve.getTangentAt(t);
+    d.position.copy(p); d.lookAt(p.clone().add(tan)); d.rotateZ(i % 2 ? Math.PI / 2 : 0); d.updateMatrix(); links.setMatrixAt(i, d.matrix);
+  }
+  g.add(links);
+  return { group: g, targets: [pend], view: { target: [0, -0.3, 0], pos: [0, -0.05, 3.1] }, shadowY: -0.95, shadowS: 1.6 };
+}
+function buildBracelet() {
+  const g = new THREE.Group();
+  const band = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.085, 48, 260).scale(1, 1, 1.6), metalMat);
+  g.add(band); g.rotation.x = -1.15;
+  return { group: g, targets: [band], view: { target: [0, 0, 0], pos: [0, 1.9, 4.4] }, shadowY: -0.55, shadowS: 2.6 };
+}
+function buildRing() {
+  const g = new THREE.Group();
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.07, 48, 220).scale(1, 1, 1.9), metalMat);
+  g.add(band); g.rotation.x = -0.35;
+  return { group: g, targets: [band], view: { target: [0, 0.15, 0], pos: [0, 1.05, 3.3] }, shadowY: -0.72, shadowS: 1.8 };
+}
+
+function setBase() {
+  if (piece) scene.remove(piece.group);
+  stones.splice(0).forEach(s => s.parent && s.parent.remove(s));
+  select(null);
+  piece = ({ necklace: buildNecklace, bracelet: buildBracelet, ring: buildRing })[state.base]();
+  scene.add(piece.group); targets = piece.targets;
+  camera.position.set(...piece.view.pos); controls.target.set(...piece.view.target); controls.update();
+  shadow.position.y = piece.shadowY; shadow.scale.setScalar(piece.shadowS);
+  document.getElementById('pendantRow').style.display = state.base === 'necklace' ? '' : 'none';
+  // start with a centre stone so the piece never looks empty
+  requestAnimationFrame(() => { addStone(true); updatePrice(); });
+}
+
+// ---------- stones ----------
+function makeStone(opts) {
+  const s = new THREE.Group();
+  s.userData = { ...opts };
+  const gem = new THREE.Mesh(gemGeo[opts.cut], gemMaterial(opts.color));
+  const bezel = new THREE.Mesh(bezelGeo[opts.cut], metalMat);
+  gem.userData.stone = bezel.userData.stone = s;
+  s.add(gem, bezel); s.userData.gem = gem; s.userData.bezel = bezel;
+  s.scale.setScalar(SIZES[opts.size].r);
+  return s;
+}
+function restyle(s, opts) {
+  Object.assign(s.userData, opts);
+  const { gem, bezel } = s.userData;
+  gem.geometry = gemGeo[s.userData.cut]; bezel.geometry = bezelGeo[s.userData.cut];
+  gem.material.dispose(); gem.material = gemMaterial(s.userData.color);
+  s.scale.setScalar(SIZES[s.userData.size].r);
+}
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+const UP = new THREE.Vector3(0, 1, 0);
+function placeOnHit(s, hit) {
+  const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+  const parent = piece.group; // stones live in the piece's space so they follow it
+  const p = parent.worldToLocal(hit.point.clone().add(n.clone().multiplyScalar(0.004)));
+  const qWorld = new THREE.Quaternion().setFromUnitVectors(UP, n);
+  const qParent = parent.getWorldQuaternion(new THREE.Quaternion()).invert();
+  s.position.copy(p); s.quaternion.copy(qParent.multiply(qWorld));
+}
+function hitBaseAt(x, y) {
+  scene.updateMatrixWorld(); camera.updateMatrixWorld(); // may run before the first frame
+  ndc.set(x, y); ray.setFromCamera(ndc, camera);
+  return ray.intersectObjects(targets, false)[0];
+}
+function addStone(silent) {
+  if (stones.length >= MAX_STONES) return toast('אפשר עד ' + MAX_STONES + ' אבנים בדמו');
+  const s = makeStone({ cut: state.cut, size: state.size, color: state.color });
+  // find a free spot: spiral out from the centre of the view
+  const r = SIZES[state.size].r;
+  for (let k = 0; k < 160; k++) {
+    const a = k * 2.399, rad = 0.012 * k;
+    const hit = hitBaseAt(Math.cos(a) * rad, Math.sin(a) * rad);
+    if (!hit) continue;
+    const tooClose = stones.some(o => o.getWorldPosition(new THREE.Vector3()).distanceTo(hit.point) < (r + o.scale.x) * 1.35);
+    if (tooClose) continue;
+    piece.group.add(s); placeOnHit(s, hit); stones.push(s);
+    if (!silent) { select(s); toast('האבן נוספה · אפשר לגרור אותה'); }
+    updatePrice(); return;
+  }
+  toast('אין מקום פנוי בתצוגה הזו · נסי לסובב או לבחור אבן קטנה');
+}
+
+// ---------- selection + dragging ----------
+function select(s) {
+  if (selected) selected.userData.bezel.material = metalMat;
+  selected = s;
+  document.getElementById('selbox').classList.toggle('on', !!s);
+  if (s) {
+    s.userData.bezel.material = bezelSelMat;
+    state.cut = s.userData.cut; state.size = s.userData.size; state.color = s.userData.color; syncButtons();
+  }
+}
+let dragging = null;
+function toNdc(e) { const r = renderer.domElement.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1]; }
+renderer.domElement.addEventListener('pointerdown', e => {
+  const [x, y] = toNdc(e); ndc.set(x, y); ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(stones, true)[0];
+  if (hit) {
+    const s = hit.object.userData.stone; select(s); dragging = s; controls.enabled = false;
+    renderer.domElement.setPointerCapture(e.pointerId);
+  } else downAt = [e.clientX, e.clientY];
+});
+let downAt = null;
+renderer.domElement.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const [x, y] = toNdc(e); const hit = hitBaseAt(x, y);
+  if (hit) placeOnHit(dragging, hit);
+});
+renderer.domElement.addEventListener('pointerup', e => {
+  if (dragging) { dragging = null; controls.enabled = true; return; }
+  if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 5) select(null); // plain click on empty space
+  downAt = null;
+});
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+const colorsEl = $('colors');
+for (const [k, c] of Object.entries(COLORS)) {
+  const b = document.createElement('button'); b.className = 'sw'; b.dataset.color = k; b.title = c.name; b.setAttribute('aria-label', c.name);
+  b.style.background = k === 'white' ? 'radial-gradient(circle at 35% 30%,#fff,#dfe6ee)' : `radial-gradient(circle at 35% 30%,#fff 0,${c.hex} 60%)`;
+  colorsEl.append(b);
+}
+function syncButtons() {
+  const press = (sel, attr, val) => document.querySelectorAll(sel).forEach(b => b.setAttribute('aria-pressed', b.dataset[attr] === val));
+  press('[data-base]', 'base', state.base); press('[data-pendant]', 'pendant', state.pendant); press('[data-metal]', 'metal', state.metal);
+  press('[data-cut]', 'cut', state.cut); press('[data-size]', 'size', state.size); press('[data-color]', 'color', state.color);
+}
+function onPick(sel, attr, fn) {
+  document.querySelectorAll(sel).forEach(b => b.addEventListener('click', () => { state[attr] = b.dataset[attr]; fn && fn(); syncButtons(); updatePrice(); }));
+}
+onPick('[data-base]', 'base', setBase);
+onPick('[data-pendant]', 'pendant', setBase);
+onPick('[data-metal]', 'metal', applyMetal);
+const restyleSel = () => selected && restyle(selected, { cut: state.cut, size: state.size, color: state.color });
+onPick('[data-cut]', 'cut', restyleSel);
+onPick('[data-size]', 'size', restyleSel);
+onPick('[data-color]', 'color', restyleSel);
+$('addStone').onclick = () => { select(null); addStone(false); };
+$('delStone').onclick = () => { if (!selected) return; selected.parent.remove(selected); stones.splice(stones.indexOf(selected), 1); select(null); updatePrice(); };
+$('dupStone').onclick = () => { if (!selected) return; select(null); addStone(false); };
+$('doneStone').onclick = () => select(null);
+$('inspo').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f); state.inspo = f.name;
+  const img = $('inspoImg'); img.src = url; img.style.display = 'block'; toast('התמונה צורפה לעיצוב');
+};
+
+function total() {
+  return BASES[state.base].price + METALS[state.metal].price + stones.reduce((a, s) => a + SIZES[s.userData.size].price, 0);
+}
+function updatePrice() { $('price').innerHTML = '₪' + total().toLocaleString('he-IL'); }
+
+function summary(title) {
+  select(null); renderer.render(scene, camera);
+  $('mTitle').textContent = title;
+  $('mShot').src = renderer.domElement.toDataURL('image/png');
+  const counts = {};
+  stones.forEach(s => { const k = `${CUTS[s.userData.cut]} · ${SIZES[s.userData.size].name} · ${COLORS[s.userData.color].name}`; counts[k] = (counts[k] || 0) + 1; });
+  const items = [
+    `בסיס: ${BASES[state.base].name}${state.base === 'necklace' ? ' עם תליון ' + PENDANTS[state.pendant] : ''}`,
+    `ציפוי: ${METALS[state.metal].name}`,
+    ...Object.entries(counts).map(([k, n]) => `${n} × אבן ${k}`),
+    state.inspo ? 'תמונת השראה מצורפת' : null,
+    `מחיר: ₪${total().toLocaleString('he-IL')}`,
+  ].filter(Boolean);
+  $('mList').innerHTML = items.map(t => `<li>${t}</li>`).join('');
+  $('modal').classList.add('on'); $('mClose').focus();
+}
+$('toCart').onclick = () => summary('התכשיט נוסף לסל');
+$('toStudio').onclick = () => summary('העיצוב נשלח לסטודיו');
+$('mClose').onclick = () => $('modal').classList.remove('on');
+$('modal').onclick = e => { if (e.target.id === 'modal') $('modal').classList.remove('on'); };
+addEventListener('keydown', e => { if (e.key === 'Escape') $('modal').classList.remove('on'); });
+
+let toastT;
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2200); }
+
+// ---------- loop ----------
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+resize(); applyMetal(); syncButtons(); setBase();
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+
+</script>
+
+</body>
+</html>
